@@ -1,0 +1,8 @@
+{
+  "name": "scintillate-contact",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "nodemailer": "^6.9.0"
+  }
+}
