@@ -43,6 +43,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Honeypot (same as before)
   if ((body?.company || "").trim()) return res.status(200).json({ ok: true });
 
+  const company = (getField(req, "organization") || "").trim(); // new visible field
   const name = (getField(req, "name") || "").trim();
   const email = (getField(req, "email") || "").trim();
   const message = (getField(req, "message") || "").trim();
