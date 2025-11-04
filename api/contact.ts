@@ -53,22 +53,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!emailOk) return res.status(400).json({ error: "Invalid email." });
 
   // --- Turnstile verification -------------------------------------------
-  const token = (getField(req, "cf-turnstile-response") || "").trim();
-  const secret = process.env.TURNSTILE_SECRET;
-  if (!secret) return res.status(500).json({ error: "Server not configured (captcha)." });
-  if (!token) return res.status(400).json({ error: "Captcha token missing." });
+const token =
+  (getField(req, "ts_token") || getField(req, "cf-turnstile-response") || "").trim();
 
-  try {
-    const verifyRes = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        secret,
-        response: token,
-        // optional hardening:
-        // remoteip: (req.headers["x-forwarded-for"] as string)?.split(",")[0] ?? ""
-      }),
-    });
+if (!token) return res.status(400).json({ error: "Captcha token missing." });
+
+const verifyRes = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+  method: "POST",
+  headers: { "Content-Type": "application/x-www-form-urlencoded" },
+  body: new URLSearchParams({
+    secret: process.env.TURNSTILE_SECRET!,
+    response: token,
+    // remoteip: (req.headers["x-forwarded-for"] as string)?.split(",")[0] ?? ""
+  }),
+});
+const outcome = await verifyRes.json();
+if (!outcome.success) {
+  return res.status(400).json({ error: "Captcha verification failed.", details: outcome["error-codes"] });
+}
     const verify = (await verifyRes.json()) as {
       success: boolean;
       "error-codes"?: string[];
