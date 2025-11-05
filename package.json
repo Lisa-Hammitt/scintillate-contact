@@ -4,9 +4,7 @@
   "type": "module",
   "dependencies": {
     "nodemailer": "^6.9.0"
-  }
-}
-{
+  },
   "devDependencies": {
     "typescript": "^5.6.3",
     "@types/node": "^20.11.30",
