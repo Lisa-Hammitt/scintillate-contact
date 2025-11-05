@@ -1,10 +1,17 @@
 export const config = { runtime: 'edge' };
 
+// TS-only shim: Edge has no Node types, so declare a minimal `process`.
+declare const process:
+  | { env: Record<string, string | undefined> }
+  | undefined;
+
+const env = (k: string) =>
+  (typeof process !== 'undefined' && process?.env?.[k]) || '';
+
 async function parseBody(req: Request) {
   const ct = req.headers.get('content-type') || '';
   if (ct.includes('application/x-www-form-urlencoded')) {
-    const text = await req.text();
-    const p = new URLSearchParams(text);
+    const p = new URLSearchParams(await req.text());
     return {
       name: p.get('name') || '',
       email: p.get('email') || '',
@@ -13,12 +20,12 @@ async function parseBody(req: Request) {
     };
   }
   try {
-    const j = await req.json();
+    const j: any = await req.json();
     return {
-      name: (j.name || '') + '',
-      email: (j.email || '') + '',
-      subject: (j.subject || 'Website contact') + '',
-      message: (j.message || '') + ''
+      name: j?.name || '',
+      email: j?.email || '',
+      subject: j?.subject || 'Website contact',
+      message: j?.message || ''
     };
   } catch {
     return { name: '', email: '', subject: 'Website contact', message: '' };
@@ -35,9 +42,9 @@ export default async function handler(req: Request) {
     return new Response(JSON.stringify({ ok: false, error: 'Missing email or message' }), { status: 400 });
   }
 
-  const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
-  const CONTACT_TO = process.env.CONTACT_TO || '';
-  const CONTACT_FROM = process.env.CONTACT_FROM || 'no-reply@yourdomain.com';
+  const RESEND_API_KEY = env('RESEND_API_KEY');
+  const CONTACT_TO     = env('CONTACT_TO');
+  const CONTACT_FROM   = env('CONTACT_FROM') || 'no-reply@yourdomain.com';
 
   if (!RESEND_API_KEY || !CONTACT_TO) {
     return new Response(JSON.stringify({ ok: false, error: 'Server not configured' }), { status: 500 });
