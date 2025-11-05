@@ -1,17 +1,6 @@
 {
-  "name": "scintillate-contact",
+  "name": "scintillate-contact-clean",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
-  "scripts": {
-    "dev": "vercel dev",
-    "build": "echo \"No build step\"",
-    "start": "vercel dev"
-  },
-  "dependencies": {
-    "nodemailer": "^6.9.0"
-  },
-  "devDependencies": {
-    "typescript": "^5.6.3"
-  }
+  "scripts": { "build": "echo ok" }
 }
