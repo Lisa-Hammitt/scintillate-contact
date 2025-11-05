@@ -1,14 +1,11 @@
 export const config = { runtime: 'edge' };
 
-// TS-only shim: Edge has no Node types, so declare a minimal `process`.
-declare const process:
-  | { env: Record<string, string | undefined> }
-  | undefined;
+function env(k) {
+  // optional chaining so it works on Edge without Node types
+  return (typeof process !== 'undefined' && process?.env?.[k]) || '';
+}
 
-const env = (k: string) =>
-  (typeof process !== 'undefined' && process?.env?.[k]) || '';
-
-async function parseBody(req: Request) {
+async function parseBody(req) {
   const ct = req.headers.get('content-type') || '';
   if (ct.includes('application/x-www-form-urlencoded')) {
     const p = new URLSearchParams(await req.text());
@@ -20,19 +17,19 @@ async function parseBody(req: Request) {
     };
   }
   try {
-    const j: any = await req.json();
+    const j = await req.json();
     return {
-      name: j?.name || '',
-      email: j?.email || '',
-      subject: j?.subject || 'Website contact',
-      message: j?.message || ''
+      name: (j?.name || '') + '',
+      email: (j?.email || '') + '',
+      subject: (j?.subject || 'Website contact') + '',
+      message: (j?.message || '') + ''
     };
   } catch {
     return { name: '', email: '', subject: 'Website contact', message: '' };
   }
 }
 
-export default async function handler(req: Request) {
+export default async function handler(req) {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ ok: false, error: 'Method Not Allowed' }), { status: 405 });
   }
