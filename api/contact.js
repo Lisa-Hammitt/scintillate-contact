@@ -1,7 +1,6 @@
 export const config = { runtime: 'edge' };
 
 function env(k) {
-  // optional chaining so it works on Edge without Node types
   return (typeof process !== 'undefined' && process?.env?.[k]) || '';
 }
 
@@ -30,6 +29,14 @@ async function parseBody(req) {
 }
 
 export default async function handler(req) {
+  // NEW: allow Framer’s probe
+  if (req.method === 'GET' || req.method === 'HEAD') {
+    return new Response('ok', {
+      status: 200,
+      headers: { 'content-type': 'text/plain', 'cache-control': 'no-store' }
+    });
+  }
+
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ ok: false, error: 'Method Not Allowed' }), { status: 405 });
   }
@@ -51,7 +58,7 @@ export default async function handler(req) {
     `<div style="font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif">
        <p><b>From:</b> ${name || '(no name)'} &lt;${email}&gt;</p>
        <p><b>Subject:</b> ${subject}</p>
-       <p><b>Message:</b></p>
+       <p><b>Message:</p>
        <pre style="white-space:pre-wrap;">${message}</pre>
      </div>`;
 
